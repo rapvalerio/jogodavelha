@@ -1,15 +1,118 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/exec"
+)
+
+type cube struct {
+	shape string
+	color string
+	focus bool
+}
+
+type board struct {
+	board []cube
+}
 
 func main() {
 	var input string
-	fmt.Println("_|_|_")
-	fmt.Println("_|_|_")
-	fmt.Println(" | | ")
+	focus := 0
+	shape := "X"
 
-	// fmt.Print("Digite algo: ")
-	fmt.Scan(&input) // Lê a entrada do usuário e armazena em 'input'
-	fmt.Println("Você digitou:", input)
+	//TODO fazer as setas se moverem sem apertar o enter
+	//TODO como fazer o focus aparecer nas ultimas linhas
+	for {
+		clearScreen()
+		showBoard(focus, shape)
 
+		fmt.Print("Escolha uma posição (1-9) ou 'q' para sair: ")
+
+		fmt.Scan(&input)
+
+		if input == "\x1b[A" {
+			fmt.Print("apertou a seta pra cima ")
+			if focus > 5 {
+				focus = focus - 5
+			}
+		}
+
+		if input == "\x1b[B" {
+			fmt.Print("apertou a seta pra baixo ")
+			if focus < 10 {
+				focus = focus + 5
+			}
+		}
+
+		if input == "\x1b[C" {
+			fmt.Print("apertou a seta pra direita ")
+			if focus == 4 {
+				focus = 4
+			} else {
+				focus = focus + 2
+			}
+		}
+
+		if input == "\x1b[D" {
+			fmt.Print("apertou a seta pra esquerda ")
+			if focus == 0 {
+				focus = 0
+			} else {
+				focus = focus - 2
+			}
+		}
+
+		fmt.Println("Você escolheu a posição:", input)
+	}
+
+	// fmt.Println("Jogo encerrado.")
+
+}
+
+func clearScreen() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
+
+func showBoard(focus int, shape string) {
+	var Reset = "\033[0m"
+	var Red = "\033[31m"
+	var White = "\033[97m"
+	// var Green = "\033[32m"
+
+	for i := 0; i < 15; i++ {
+		color := White
+
+		if i == focus {
+			color = Red
+			shape = "X"
+		}
+
+		if i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 {
+			if i == 4 || i == 9 {
+				fmt.Println(color + "_" + Reset)
+			} else {
+				fmt.Print(color + "_" + Reset)
+			}
+		}
+
+		if i == 10 || i == 12 || i == 14 {
+			if i == 14 {
+				fmt.Println(color + " " + Reset)
+			} else {
+				fmt.Print(color + " " + Reset)
+			}
+		}
+
+		if i == 1 || i == 3 || i == 6 || i == 8 || i == 11 || i == 13 {
+			if i == 13 {
+				fmt.Println("|")
+			} else {
+				fmt.Print("|")
+			}
+		}
+
+	}
 }
