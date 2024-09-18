@@ -6,26 +6,31 @@ import (
 	"os/exec"
 )
 
-type cube struct {
-	shape string
-	color string
-	focus bool
-}
+// type cube struct {
+// 	shape string
+// 	color string
+// 	focus int
+// }
 
-type board struct {
-	board []cube
-}
+// type board struct {
+// 	board []*cube
+// }
+// var tabuleiro = []int{
+// 	0,0,0,
+// 	0,0,0,
+// 	0,0,0,
+// }
 
 func main() {
 	var input string
 	focus := 0
-	shape := "X"
+	// shape := "X"
 
 	//TODO fazer as setas se moverem sem apertar o enter
 	//TODO como fazer o focus aparecer nas ultimas linhas
 	for {
 		clearScreen()
-		showBoard(focus, shape)
+		showBoard(focus)
 
 		fmt.Print("Escolha uma posição (1-9) ou 'q' para sair: ")
 
@@ -76,33 +81,34 @@ func clearScreen() {
 	cmd.Run()
 }
 
-func showBoard(focus int, shape string) {
+func showBoard(focus int) {
 	var Reset = "\033[0m"
-	var Red = "\033[31m"
-	var White = "\033[97m"
+	// var Red = "\033[31m"
+	// var White = "\033[97m"
 	// var Green = "\033[32m"
 
 	for i := 0; i < 15; i++ {
-		color := White
+		var fundo = "\033[0m"
+		// color := White
 
 		if i == focus {
-			color = Red
-			shape = "X"
+			// color = Red
+			fundo = "\033[41m"
 		}
 
 		if i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 {
 			if i == 4 || i == 9 {
-				fmt.Println(color + "_" + Reset)
+				fmt.Println(fundo + "_" + Reset)
 			} else {
-				fmt.Print(color + "_" + Reset)
+				fmt.Print(fundo + "_" + Reset)
 			}
 		}
 
 		if i == 10 || i == 12 || i == 14 {
 			if i == 14 {
-				fmt.Println(color + " " + Reset)
+				fmt.Println(fundo + " " + Reset)
 			} else {
-				fmt.Print(color + " " + Reset)
+				fmt.Print(fundo + " " + Reset)
 			}
 		}
 
