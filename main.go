@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/eiannone/keyboard"
 )
 
 // type cube struct {
@@ -15,44 +17,65 @@ import (
 //	type board struct {
 //		board []*cube
 //	}
+var player = 0
+
+var combinacoesVencedoras = [][]int{
+	{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+	{0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+	{0, 4, 8}, {2, 4, 6},
+}
+
+var tabuleiro = []int{
+	4, 0, 0,
+	0, 0, 0,
+	0, 0, 0,
+}
 
 func main() {
-	var input string
-	var tabuleiro = []int{
-		4, 0, 0,
-		0, 0, 0,
-		0, 0, 0,
-	}
+	// var input string
 
 	//TODO fazer as setas se moverem sem apertar o enter
 	for {
 		clearScreen()
 		showBoard(tabuleiro)
 
-		fmt.Print("Navegue usando -> ou <- e aperte o 'a' para marcar: ")
+		err := keyboard.Open()
+		if err != nil {
+			panic(err)
+		}
+		defer keyboard.Close()
 
-		fmt.Scan(&input)
+		fmt.Println("Navegue usando -> ou <- e aperte o 'a' para marcar")
+		// fmt.Scan(&input)
+		char, key, err := keyboard.GetKey()
+		if err != nil {
+			panic(err)
+		}
 
-		if input == "a" {
+		fmt.Printf("Você pressionou: %q (key code: %d)\n", char, key)
+
+		if key == keyboard.KeyEnter {
 			addSymbol(tabuleiro)
 		}
 
-		if input == "\x1b[C" {
+		if key == keyboard.KeyArrowRight {
 			fmt.Print("apertou a seta pra direita ")
 			resetTabuleiro(tabuleiro, 1)
-			// setNextFocus(tabuleiro)
 		}
 
-		if input == "\x1b[D" {
+		if key == keyboard.KeyArrowLeft {
 			fmt.Print("apertou a seta pra esquerda ")
 			resetTabuleiro(tabuleiro, -1)
 		}
 
-		fmt.Println("Você escolheu a posição:", input)
+		if isWin(tabuleiro) {
+			clearScreen()
+			showBoard(tabuleiro)
+			Jogador := player % 2
+			fmt.Printf("Jogador %d venceu! \n", Jogador)
+			break
+		}
 	}
-
-	// fmt.Println("Jogo encerrado.")
-
 }
 
 func clearScreen() {
@@ -86,13 +109,34 @@ func convertIntToShapes(valor int) string {
 }
 
 func addSymbol(tabuleiro []int) {
+	player++
 	for i := 0; i < len(tabuleiro); i++ {
 		if tabuleiro[i] == 4 {
-			tabuleiro[i] = 1
+			if player%2 == 0 {
+				tabuleiro[i] = 2
+			} else {
+				tabuleiro[i] = 1
+			}
 			setNextFocus(tabuleiro)
 			break
 		}
 	}
+}
+
+func isWin(tabuleiro []int) bool {
+	// pedaco := combinacoesVencedoras[0]
+	valor := []int{}
+	for i := range combinacoesVencedoras {
+		for _, k := range combinacoesVencedoras[i] {
+			valor = append(valor, tabuleiro[k])
+		}
+		if valor[0] == valor[1] && valor[1] == valor[2] && valor[0] != 0 {
+			return true
+		}
+		valor = []int{}
+	}
+
+	return false
 }
 
 func setNextFocus(tabuleiro []int) {
