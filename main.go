@@ -8,15 +8,6 @@ import (
 	"github.com/eiannone/keyboard"
 )
 
-// type cube struct {
-// 	shape string
-// 	color string
-// 	focus int
-// }
-
-//	type board struct {
-//		board []*cube
-//	}
 var player = 0
 
 var combinacoesVencedoras = [][]int{
@@ -32,12 +23,8 @@ var tabuleiro = []int{
 }
 
 func main() {
-	// var input string
-
-	//TODO fazer as setas se moverem sem apertar o enter
 	for {
 		clearScreen()
-		showBoard(tabuleiro)
 
 		err := keyboard.Open()
 		if err != nil {
@@ -45,44 +32,66 @@ func main() {
 		}
 		defer keyboard.Close()
 
-		fmt.Println("Navegue usando -> ou <- e aperte o 'a' para marcar")
-		// fmt.Scan(&input)
-		char, key, err := keyboard.GetKey()
+		showInstructions()
+		showBoard(tabuleiro)
+
+		_, key, err := keyboard.GetKey()
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("Você pressionou: %q (key code: %d)\n", char, key)
+		if key == keyboard.KeyEsc {
+			break
+		}
 
 		if key == keyboard.KeyEnter {
 			addSymbol(tabuleiro)
 		}
 
 		if key == keyboard.KeyArrowRight {
-			fmt.Print("apertou a seta pra direita ")
 			resetTabuleiro(tabuleiro, 1)
 		}
 
 		if key == keyboard.KeyArrowLeft {
-			fmt.Print("apertou a seta pra esquerda ")
 			resetTabuleiro(tabuleiro, -1)
+		}
+
+		if key == keyboard.KeyArrowDown {
+			resetTabuleiro(tabuleiro, 3)
+		}
+
+		if key == keyboard.KeyArrowUp {
+			resetTabuleiro(tabuleiro, -3)
 		}
 
 		if isWin(tabuleiro) {
 			clearScreen()
+			showInstructions()
 			showBoard(tabuleiro)
 			Jogador := player % 2
-			fmt.Printf("Jogador %d venceu! \n", Jogador)
+			if Jogador == 0 {
+				fmt.Printf("Jogador 2 venceu! \n")
+			} else {
+				fmt.Printf("Jogador %d venceu! \n", Jogador)
+			}
 			break
 		}
 
 		if isDraw(tabuleiro) {
 			clearScreen()
+			showInstructions()
 			showBoard(tabuleiro)
 			fmt.Println("O jogo empatou")
 			break
 		}
 	}
+}
+
+func showInstructions() {
+	fmt.Println("Use as setas -> ou <- para navegar")
+	fmt.Println("Aperta 'Enter' para marcar")
+	fmt.Println("Aperta 'ESC' para sair")
+	fmt.Println("")
 }
 
 func clearScreen() {
