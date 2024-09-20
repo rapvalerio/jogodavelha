@@ -75,6 +75,13 @@ func main() {
 			fmt.Printf("Jogador %d venceu! \n", Jogador)
 			break
 		}
+
+		if isDraw(tabuleiro) {
+			clearScreen()
+			showBoard(tabuleiro)
+			fmt.Println("O jogo empatou")
+			break
+		}
 	}
 }
 
@@ -146,6 +153,16 @@ func setNextFocus(tabuleiro []int) {
 			break
 		}
 	}
+}
+
+func isDraw(tabuleiro []int) bool {
+	for i := 0; i < len(tabuleiro); i++ {
+		if tabuleiro[i] == 0 || tabuleiro[i] == 4 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func resetTabuleiro(tabuleiro []int, direcao int) []int {
