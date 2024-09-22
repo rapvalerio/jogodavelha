@@ -8,6 +8,12 @@ import (
 	"github.com/eiannone/keyboard"
 )
 
+const (
+	playerX = 1
+	playerO = 2
+	focus   = 4
+)
+
 var player = 0
 
 var combinacoesVencedoras = [][]int{
@@ -17,7 +23,7 @@ var combinacoesVencedoras = [][]int{
 }
 
 var tabuleiro = []int{
-	4, 0, 0,
+	focus, 0, 0,
 	0, 0, 0,
 	0, 0, 0,
 }
@@ -40,51 +46,56 @@ func main() {
 			panic(err)
 		}
 
+		tecla(key)
+
 		if key == keyboard.KeyEsc {
 			break
 		}
 
-		if key == keyboard.KeyEnter {
-			addSymbol(tabuleiro)
-		}
-
-		if key == keyboard.KeyArrowRight {
-			resetTabuleiro(tabuleiro, 1)
-		}
-
-		if key == keyboard.KeyArrowLeft {
-			resetTabuleiro(tabuleiro, -1)
-		}
-
-		if key == keyboard.KeyArrowDown {
-			resetTabuleiro(tabuleiro, 3)
-		}
-
-		if key == keyboard.KeyArrowUp {
-			resetTabuleiro(tabuleiro, -3)
-		}
-
-		if isWin(tabuleiro) {
-			clearScreen()
-			showInstructions()
-			showBoard(tabuleiro)
-			Jogador := player % 2
-			if Jogador == 0 {
-				fmt.Printf("Jogador 2 venceu! \n")
-			} else {
-				fmt.Printf("Jogador %d venceu! \n", Jogador)
-			}
-			break
-		}
-
-		if isDraw(tabuleiro) {
-			clearScreen()
-			showInstructions()
-			showBoard(tabuleiro)
-			fmt.Println("O jogo empatou")
+		if endgame() {
 			break
 		}
 	}
+}
+
+func tecla(key keyboard.Key) {
+	switch key {
+	case keyboard.KeyEnter:
+		addSymbol(tabuleiro)
+	case keyboard.KeyArrowRight:
+		resetTabuleiro(tabuleiro, 1)
+	case keyboard.KeyArrowLeft:
+		resetTabuleiro(tabuleiro, -1)
+	case keyboard.KeyArrowDown:
+		resetTabuleiro(tabuleiro, 3)
+	case keyboard.KeyArrowUp:
+		resetTabuleiro(tabuleiro, -3)
+	}
+}
+
+func endgame() bool {
+	if isWin(tabuleiro) {
+		clearScreen()
+		showInstructions()
+		showBoard(tabuleiro)
+		Jogador := player % 2
+		if Jogador == 0 {
+			fmt.Printf("Jogador 2 venceu! \n")
+		} else {
+			fmt.Printf("Jogador %d venceu! \n", Jogador)
+		}
+		return true
+	}
+
+	if isDraw(tabuleiro) {
+		clearScreen()
+		showInstructions()
+		showBoard(tabuleiro)
+		fmt.Println("O jogo empatou")
+		return true
+	}
+
+	return false
 }
 
 func showInstructions() {
@@ -101,42 +112,36 @@ func clearScreen() {
 }
 
 func showBoard(board []int) {
-	fmt.Printf("  %s | %s | %s \n", convertIntToShapes(board[0]), convertIntToShapes(board[1]), convertIntToShapes(board[2]))
-	fmt.Println(" ---+---+---")
-	fmt.Printf("  %s | %s | %s \n", convertIntToShapes(board[3]), convertIntToShapes(board[4]), convertIntToShapes(board[5]))
-	fmt.Println(" ---+---+---")
-	fmt.Printf("  %s | %s | %s \n", convertIntToShapes(board[6]), convertIntToShapes(board[7]), convertIntToShapes(board[8]))
+	for i := 0; i < 3; i++ {
+		fmt.Printf("  %s | %s | %s \n", convertIntToShapes(board[i*3]), convertIntToShapes(board[i*3+1]), convertIntToShapes(board[i*3+2]))
+		if i < 2 {
+			fmt.Println(" ---+---+---")
+		}
+	}
 }
 
 func convertIntToShapes(valor int) string {
-	if valor == 2 {
+	switch valor {
+	case playerO:
 		return "O"
-	}
-
-	if valor == 1 {
+	case playerX:
 		return "X"
-	}
-
-	if valor == 4 {
+	case focus:
 		return "*"
+	default:
+		return " "
 	}
-
-	return " "
 }
 
 func addSymbol(tabuleiro []int) {
 	player++
-	for i := 0; i < len(tabuleiro); i++ {
-		if tabuleiro[i] == 4 {
-			if player%2 == 0 {
-				tabuleiro[i] = 2
-			} else {
-				tabuleiro[i] = 1
-			}
-			setNextFocus(tabuleiro)
-			break
-		}
+	cursor := cursorPos(tabuleiro)
+	if player%2 == 0 {
+		tabuleiro[cursor] = 2
+	} else {
+		tabuleiro[cursor] = 1
 	}
+	setNextFocus(tabuleiro)
 }
 
 func isWin(tabuleiro []int) bool {
@@ -158,7 +163,7 @@ func isWin(tabuleiro []int) bool {
 func setNextFocus(tabuleiro []int) {
 	for i := 0; i < len(tabuleiro); i++ {
 		if tabuleiro[i] == 0 {
-			tabuleiro[i] = 4
+			tabuleiro[i] = focus
 			break
 		}
 	}
@@ -166,7 +171,7 @@ func setNextFocus(tabuleiro []int) {
 
 func isDraw(tabuleiro []int) bool {
 	for i := 0; i < len(tabuleiro); i++ {
-		if tabuleiro[i] == 0 || tabuleiro[i] == 4 {
+		if tabuleiro[i] == 0 || tabuleiro[i] == focus {
 			return false
 		}
 	}
@@ -175,14 +180,7 @@ func isDraw(tabuleiro []int) bool {
 }
 
 func resetTabuleiro(tabuleiro []int, direcao int) []int {
-	cursorPos := -1
-
-	for i, v := range tabuleiro {
-		if v == 4 {
-			cursorPos = i
-			break
-		}
-	}
+	cursorPos := cursorPos(tabuleiro)
 
 	if cursorPos == -1 {
 		return tabuleiro
@@ -192,10 +190,23 @@ func resetTabuleiro(tabuleiro []int, direcao int) []int {
 		nextPos := (cursorPos + direcao*i + len(tabuleiro)) % len(tabuleiro)
 		if tabuleiro[nextPos] == 0 {
 			tabuleiro[cursorPos] = 0
-			tabuleiro[nextPos] = 4
+			tabuleiro[nextPos] = focus
 			break
 		}
 	}
 
 	return tabuleiro
+}
+
+func cursorPos(tabuleiro []int) int {
+	cursorPos := -1
+
+	for index, value := range tabuleiro {
+		if value == focus {
+			cursorPos = index
+			break
+		}
+	}
+
+	return cursorPos
 }
