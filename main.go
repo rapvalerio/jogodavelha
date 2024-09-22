@@ -14,7 +14,7 @@ const (
 	focus   = 4
 )
 
-var player = 0
+var currentPlayer = playerX
 
 var combinacoesVencedoras = [][]int{
 	{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
@@ -29,15 +29,14 @@ var tabuleiro = []int{
 }
 
 func main() {
+	err := keyboard.Open()
+	if err != nil {
+		panic(err)
+	}
+	defer keyboard.Close()
+
 	for {
 		clearScreen()
-
-		err := keyboard.Open()
-		if err != nil {
-			panic(err)
-		}
-		defer keyboard.Close()
-
 		showInstructions()
 		showBoard(tabuleiro)
 
@@ -46,7 +45,7 @@ func main() {
 			panic(err)
 		}
 
-		tecla(key)
+		action(key)
 
 		if key == keyboard.KeyEsc {
 			break
@@ -58,7 +57,7 @@ func main() {
 	}
 }
 
-func tecla(key keyboard.Key) {
+func action(key keyboard.Key) {
 	switch key {
 	case keyboard.KeyEnter:
 		addSymbol(tabuleiro)
@@ -75,21 +74,16 @@ func tecla(key keyboard.Key) {
 
 func endgame() bool {
 	if isWin(tabuleiro) {
-		clearScreen()
-		showInstructions()
 		showBoard(tabuleiro)
-		Jogador := player % 2
-		if Jogador == 0 {
+		if currentPlayer == playerO {
 			fmt.Printf("Jogador 2 venceu! \n")
 		} else {
-			fmt.Printf("Jogador %d venceu! \n", Jogador)
+			fmt.Printf("Jogador 1 venceu! \n")
 		}
 		return true
 	}
 
 	if isDraw(tabuleiro) {
-		clearScreen()
-		showInstructions()
 		showBoard(tabuleiro)
 		fmt.Println("O jogo empatou")
 		return true
@@ -112,6 +106,8 @@ func clearScreen() {
 }
 
 func showBoard(board []int) {
+	clearScreen()
+	showInstructions()
 	for i := 0; i < 3; i++ {
 		fmt.Printf("  %s | %s | %s \n", convertIntToShapes(board[i*3]), convertIntToShapes(board[i*3+1]), convertIntToShapes(board[i*3+2]))
 		if i < 2 {
@@ -134,27 +130,19 @@ func convertIntToShapes(valor int) string {
 }
 
 func addSymbol(tabuleiro []int) {
-	player++
 	cursor := cursorPos(tabuleiro)
-	if player%2 == 0 {
-		tabuleiro[cursor] = 2
-	} else {
-		tabuleiro[cursor] = 1
+	if tabuleiro[cursor] == focus {
+		tabuleiro[cursor] = currentPlayer
+		togglePlayer()
+		setNextFocus(tabuleiro)
 	}
-	setNextFocus(tabuleiro)
 }
 
 func isWin(tabuleiro []int) bool {
-	// pedaco := combinacoesVencedoras[0]
-	valor := []int{}
-	for i := range combinacoesVencedoras {
-		for _, k := range combinacoesVencedoras[i] {
-			valor = append(valor, tabuleiro[k])
-		}
-		if valor[0] == valor[1] && valor[1] == valor[2] && valor[0] != 0 {
+	for _, combinacoes := range combinacoesVencedoras {
+		if tabuleiro[combinacoes[0]] != 0 && tabuleiro[combinacoes[0]] == tabuleiro[combinacoes[1]] && tabuleiro[combinacoes[1]] == tabuleiro[combinacoes[2]] {
 			return true
 		}
-		valor = []int{}
 	}
 
 	return false
@@ -209,4 +197,12 @@ func cursorPos(tabuleiro []int) int {
 	}
 
 	return cursorPos
+}
+
+func togglePlayer() {
+	if currentPlayer == playerX {
+		currentPlayer = playerO
+	} else {
+		currentPlayer = playerX
+	}
 }
